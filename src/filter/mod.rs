@@ -1,6 +1,7 @@
 mod and;
 mod and_then;
 mod boxed;
+mod flatten;
 mod map;
 mod map_err;
 mod or;
@@ -23,6 +24,7 @@ use crate::route::{self, Route};
 pub(crate) use self::and::And;
 use self::and_then::AndThen;
 pub use self::boxed::BoxedFilter;
+use self::flatten::Flatten;
 pub(crate) use self::map::Map;
 pub(crate) use self::map_err::MapErr;
 pub(crate) use self::or::Or;
@@ -340,6 +342,25 @@ pub trait Filter: FilterBase {
         T: Tuple,
     {
         UntupleOne { filter: self }
+    }
+
+    /// Flattens a filter which extracts another filter, and thus
+    /// extracts what the inner filter extracts.
+    ///
+    /// This allows you to return a filter in `and_then`, then `flatten`
+    /// it to pass parameters to filter constructors dynamically as so:
+    /// ```rust
+    /// use warp::{Filter, Rejection};
+    /// fn f(f: impl Filter<Extract = (u64,), Error = Rejection>) -> impl Filter {
+    ///   Filter::map(f, |n| warp::filters::body::content_length_limit(n)).flatten()
+    /// }
+    /// ```
+    fn flatten<F>(self) -> Flatten<Self>
+    where
+        Self: Filter<Extract = (F,)> + Sized,
+        F: Filter,
+    {
+        Flatten { filter: self }
     }
 
     /// Wraps the current filter with some wrapper.
