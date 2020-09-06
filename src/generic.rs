@@ -35,9 +35,12 @@ pub trait Combine<T: HList> {
     fn combine(self, other: T) -> Self::Output;
 }
 
+/// Function
 pub trait Func<Args> {
+    /// Output
     type Output;
 
+    /// Call
     fn call(&self, args: Args) -> Self::Output;
 }
 
@@ -101,6 +104,22 @@ where
     }
 }
 
+impl<F1, F2, T> Func<T> for Either<F1, F2>
+where
+    F1: Func<T>,
+    F2: Func<T, Output = F1::Output>,
+{
+    type Output = F1::Output;
+
+    #[inline]
+    fn call(&self, args: T) -> Self::Output {
+        match self {
+            &Either::A(ref f) => f.call(args),
+            &Either::B(ref f) => f.call(args),
+        }
+    }
+}
+
 macro_rules! product {
     ($H:expr) => { Product($H, ()) };
     ($H:expr, $($T:expr),*) => { Product($H, product!($($T),*)) };
@@ -159,7 +178,6 @@ macro_rules! generics {
                 (*self)(args.0)
             }
         }
-
     };
 
     ($type1:ident, $( $type:ident ),*) => {
