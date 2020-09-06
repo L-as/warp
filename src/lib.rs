@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/warp/0.2.5")]
+#![doc(html_root_url = "https://docs.rs/warp/0.2.4")]
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
 #![cfg_attr(test, deny(warnings))]
@@ -101,9 +101,9 @@ pub mod test;
 mod tls;
 mod transport;
 
+pub use self::generic::{Either, Func};
 pub use self::error::Error;
 pub use self::filter::Filter;
-pub use self::generic::Func;
 // This otherwise shows a big dump of re-exports in the doc homepage,
 // with zero context, so just hide it from the docs. Doc examples
 // on each can show that a convenient import exists.
@@ -150,7 +150,6 @@ pub use self::filters::{
     trace::trace,
 };
 // ws() function
-pub use self::filter::wrap_fn;
 #[cfg(feature = "websocket")]
 #[doc(hidden)]
 pub use self::filters::ws::ws;
