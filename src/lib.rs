@@ -101,7 +101,7 @@ pub mod test;
 mod tls;
 mod transport;
 
-pub use self::generic::{Either, Func};
+pub use self::generic::{Either, Func, FuncOnce};
 pub use self::error::Error;
 pub use self::filter::Filter;
 // This otherwise shows a big dump of re-exports in the doc homepage,

@@ -9,8 +9,11 @@ pub(crate) fn one<T>(val: T) -> One<T> {
 }
 
 #[derive(Debug)]
+/// Either
 pub enum Either<T, U> {
+    /// A
     A(T),
+    /// B
     B(U),
 }
 
@@ -33,6 +36,15 @@ pub trait Combine<T: HList> {
     type Output: HList;
 
     fn combine(self, other: T) -> Self::Output;
+}
+
+/// Function
+pub trait FuncOnce<Args> {
+    /// Output
+    type Output;
+
+    /// Call
+    fn call(self, args: Args) -> Self::Output;
 }
 
 /// Function
@@ -78,6 +90,14 @@ impl Tuple for () {
 
     #[inline]
     fn hlist(self) -> Self::HList {}
+}
+
+impl<'a, Args, F: Func<Args>> FuncOnce<Args> for &'a F {
+    type Output = <F as Func<Args>>::Output;
+
+    fn call(self, args: Args) -> <Self as FuncOnce<Args>>::Output {
+        <F as Func<Args>>::call(self, args)
+    }
 }
 
 impl<F, R> Func<()> for F
