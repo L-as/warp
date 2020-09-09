@@ -92,14 +92,6 @@ impl Tuple for () {
     fn hlist(self) -> Self::HList {}
 }
 
-impl<'a, Args, F: Func<Args>> FuncOnce<Args> for &'a F {
-    type Output = <F as Func<Args>>::Output;
-
-    fn call(self, args: Args) -> <Self as FuncOnce<Args>>::Output {
-        <F as Func<Args>>::call(self, args)
-    }
-}
-
 impl<F, R> Func<()> for F
 where
     F: Fn() -> R,
@@ -109,6 +101,18 @@ where
     #[inline]
     fn call(&self, _args: ()) -> Self::Output {
         (*self)()
+    }
+}
+
+impl<F, R> FuncOnce<()> for F
+where
+    F: FnOnce() -> R,
+{
+    type Output = R;
+
+    #[inline]
+    fn call(self, _args: ()) -> Self::Output {
+        self()
     }
 }
 
@@ -198,6 +202,31 @@ macro_rules! generics {
                 (*self)(args.0)
             }
         }
+
+        impl<F, R, $type> FuncOnce<Product!($type)> for F
+        where
+            F: FnOnce($type) -> R,
+        {
+            type Output = R;
+
+            #[inline]
+            fn call(self, args: Product!($type)) -> Self::Output {
+                self(args.0)
+            }
+
+        }
+
+        impl<F, R, $type> FuncOnce<($type,)> for F
+        where
+            F: FnOnce($type) -> R,
+        {
+            type Output = R;
+
+            #[inline]
+            fn call(self, args: ($type,)) -> Self::Output {
+                self(args.0)
+            }
+        }
     };
 
     ($type1:ident, $( $type:ident ),*) => {
@@ -250,6 +279,34 @@ macro_rules! generics {
                 #[allow(non_snake_case)]
                 let ($type1, $( $type ),*) = args;
                 (*self)($type1, $( $type ),*)
+            }
+        }
+
+        impl<F, R, $type1, $( $type ),*> FuncOnce<Product!($type1, $($type),*)> for F
+        where
+            F: FnOnce($type1, $( $type ),*) -> R,
+        {
+            type Output = R;
+
+            #[inline]
+            fn call(self, args: Product!($type1, $($type),*)) -> Self::Output {
+                #[allow(non_snake_case)]
+                let product_pat!($type1, $( $type ),*) = args;
+                self($type1, $( $type ),*)
+            }
+        }
+
+        impl<F, R, $type1, $( $type ),*> FuncOnce<($type1, $($type),*)> for F
+        where
+            F: FnOnce($type1, $( $type ),*) -> R,
+        {
+            type Output = R;
+
+            #[inline]
+            fn call(self, args: ($type1, $($type),*)) -> Self::Output {
+                #[allow(non_snake_case)]
+                let ($type1, $( $type ),*) = args;
+                self($type1, $( $type ),*)
             }
         }
     };
